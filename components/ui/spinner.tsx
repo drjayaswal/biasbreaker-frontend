@@ -1,7 +1,5 @@
 import { Loader } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-
 function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
   return (
     <div className="mt-32 flex flex-col items-center justify-center gap-4 text-white">

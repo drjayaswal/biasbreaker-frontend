@@ -22,10 +22,11 @@ interface ServicesProps {
 }
 
 export function Services({ user }: ServicesProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [description, setDescription] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const [isPickerLoaded, setIsPickerLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [extractedData, setExtractedData] = useState<FileData[]>([]);
 
   const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
@@ -78,8 +79,19 @@ export function Services({ user }: ServicesProps) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please log in to upload files");
+      return;
+    }
+
     const formData = new FormData();
     let validFilesCount = 0;
+
+    if (user?.id && description) {
+      formData.append("userId", user.id);
+      formData.append("description", description);
+    }
 
     Array.from(files).forEach((file) => {
       const isAllowedType = ALLOWED_MIME_TYPES.includes(file.type);
@@ -101,10 +113,14 @@ export function Services({ user }: ServicesProps) {
     if (validFilesCount === 0) return;
 
     try {
+      setIsLoading(true);
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/upload`,
         {
           method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           body: formData,
         },
       );
@@ -115,13 +131,16 @@ export function Services({ user }: ServicesProps) {
 
         setExtractedData(normalizedData);
         toast.success("Analysis Complete");
+      } else if (response.status === 401) {
+        toast.error("Session expired. Please log in again.");
       } else {
         toast.error("Upload failed on the server.");
       }
     } catch (error) {
       console.error("Upload error:", error);
-      toast.warning("Could not connect to the backend at port 8000");
+      toast.warning("Could not connect to the backend server");
     } finally {
+      setIsLoading(false);
       e.target.value = "";
     }
   };
@@ -130,41 +149,55 @@ export function Services({ user }: ServicesProps) {
     onSuccess: (tokenResponse) => {
       openPicker(tokenResponse.access_token);
     },
-    scope: process.env.NEXT_PUBLIC_DRIVE_URL,
+    scope: "https://www.googleapis.com/auth/drive.readonly",
   });
 
   const openPicker = (token: string) => {
     if (!isPickerLoaded) return alert("Picker API not loaded yet.");
-
+    const biasbreakerToken = localStorage.getItem("token");
     const google = (window as any).google;
 
     const handleConnectDrive = async (
-      folderId: number,
+      folderId: string,
       userAccessToken: string,
     ) => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-folder/${folderId}`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-folder`,
           {
-            method: "GET",
+            method: "POST",
             headers: {
-              Authorization: `Bearer ${userAccessToken}`,
+              Authorization: `Bearer ${biasbreakerToken}`,
               "Content-Type": "application/json",
             },
+            body: JSON.stringify({
+              folderId: folderId,
+              description: description,
+              userId: user?.id,
+              googleToken: userAccessToken,
+              email: user?.email,
+            }),
           },
         );
 
         const data = await response.json();
 
-        if (data.error) {
-          console.error("Backend Error:", data.error);
+        if (response.ok) {
+          const normalizedData = Array.isArray(data) ? data : [data];
+          setExtractedData(normalizedData);
+          toast.success("Folder processed and analyzed successfully");
         } else {
-          console.log("Files found in folder:", data.files);
+          console.error("Backend Error:", data.detail || data.error);
+          toast.error(data.detail || "Failed to process folder");
         }
       } catch (error) {
         console.error("Network Error:", error);
+        toast.error("Could not reach analysis server");
+      } finally {
+        setIsLoading(false);
       }
     };
+
     const view = new google.picker.DocsView(google.picker.ViewId.FOLDERS)
       .setIncludeFolders(true)
       .setSelectFolderEnabled(true)
@@ -177,7 +210,7 @@ export function Services({ user }: ServicesProps) {
       .setAppId(process.env.NEXT_PUBLIC_APP_ID)
       .setTitle("Select Biasbreaker Project Folder")
       .setSize(1050, 650)
-      .setOrigin(process.env.NEXT_PUBLIC_URL)
+      .setOrigin(window.location.origin)
       .enableFeature(google.picker.Feature.NAV_HIDDEN)
       .setCallback(async (data: any) => {
         if (data.action === google.picker.Action.PICKED) {
@@ -185,23 +218,23 @@ export function Services({ user }: ServicesProps) {
           try {
             await handleConnectDrive(folderId, token);
           } catch (err) {
-            setIsLoading((prev) => !prev);
             console.error("Backend fetch failed:", err);
+            setIsLoading(false);
           }
+        } else if (data.action === google.picker.Action.CANCEL) {
+          setIsLoading(false);
         }
       })
       .build();
 
     picker.setVisible(true);
-    setIsLoading((prev) => !prev);
+    setIsLoading(true);
   };
 
   if (isLoading) return <Spinner />;
 
   return (
     <div className="flex flex-col items-center justify-start p-4 sm:p-6">
-      {" "}
-      {/* Added responsive padding */}
       <input
         type="file"
         ref={fileInputRef}
@@ -223,7 +256,18 @@ export function Services({ user }: ServicesProps) {
           <h1 className="text-3xl font-bold text-main tracking-tight">
             Services
           </h1>
-          <p className="text-slate-500">Manage your connections and folders</p>
+          <p className="text-slate-500 mb-6">
+            Manage your connections and folders
+          </p>
+
+          <div className="max-w-md mx-auto mb-8">
+            <textarea
+              placeholder="Describe your requirements here to match..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full p-3 rounded-xl bg-main/2 border-2 border-transparent shadow-inner text-main focus:outline-none focus:border-main/10 placeholder:text-slate-400 transition-colors"
+            />
+          </div>
         </header>
         <Script
           src="https://apis.google.com/js/api.js"

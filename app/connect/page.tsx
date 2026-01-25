@@ -12,52 +12,51 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    const response = await fetch("http://localhost:8000/connect", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/connect`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        },
+      );
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      // Handles 401 (Wrong pass) or 500 (DB error) from backend
-      throw new Error(data.detail || "Authentication failed");
+      if (!response.ok) {
+        throw new Error(data.detail || "Authentication failed");
+      }
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user_email", data.email);
+
+        toast.success(data.message || "Welcome!");
+
+        setTimeout(() => {
+          router.push("/");
+          window.location.href = "/";
+        }, 500);
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Could not connect to the server");
+    } finally {
+      setLoading(false);
     }
-
-    // 1. Store the JWT and Email
-    if (data.token) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user_email", data.email);
-      
-      toast.success(data.message || "Welcome!");
-
-      // 2. Optional: Small delay to ensure storage is set before redirect
-      setTimeout(() => {
-        router.push("/");
-        // Trigger a page refresh or custom event if your Navbar 
-        // doesn't automatically detect localStorage changes
-        window.location.href = "/"; 
-      }, 500);
-    }
-
-  } catch (error: any) {
-    toast.error(error.message || "Could not connect to the server");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   return (
     <div className="flex flex-col items-center justify-center relative overflow-hidden">
       <div className="relative z-10 w-full min-w-md mx-auto px-6">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-main">Sign In</h1>
-          <p className="text-main text-sm mt-2 font-medium">Enter email and password to continue</p>
+          <p className="text-main text-sm mt-2 font-medium">
+            Enter email and password to continue
+          </p>
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
@@ -72,7 +71,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <Input
               type="password"

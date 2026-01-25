@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { Services } from "@/components/app/Services";
-import NotFound from "@/app/not-found";
 import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {

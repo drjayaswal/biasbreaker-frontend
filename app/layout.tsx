@@ -6,9 +6,13 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "sonner";
 import AuthGuard from "@/components/app/AuthGurad";
+import { AlertCircle, CheckCircle2, Info, Loader } from "lucide-react";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
   title: "BiasBreaker",
@@ -16,15 +20,37 @@ export const metadata: Metadata = {
   icons: { icon: "/logo.png" },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased select-none`}>
-        <Toaster position="bottom-right" closeButton richColors className="bg-main/05" />
-        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased select-none`}
+      >
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            className:
+              "bg-main text-black border-none font-bold rounded-2xl shadow-2xl",
+          }}
+          icons={{
+            success: <CheckCircle2 className="text-black" size={18} />,
+            error: <AlertCircle className="text-rose-600" size={18} />,
+            info: <Info className="text-blue-500" size={18} />,
+            loading: <Loader className="animate-spin text-black" size={18} />,
+          }}
+        />
+        <GoogleOAuthProvider
+          clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}
+        >
           <AuthGuard>
             <Navbar />
-            <div className="min-h-screen w-full flex flex-col items-center justify-center overflow-x-hidden">{children}</div>
+            <div className="min-h-screen w-full flex flex-col items-center justify-center overflow-x-hidden">
+              {children}
+            </div>
             <Footer />
           </AuthGuard>
         </GoogleOAuthProvider>

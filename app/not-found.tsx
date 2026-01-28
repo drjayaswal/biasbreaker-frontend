@@ -8,7 +8,6 @@ export default function NotFound() {
     <div className="fixed mx-auto flex flex-col items-center justify-center w-full overflow-hidden pt-50">
 
       <div className="relative z-10 text-center">
-        {/* Large Shadowed 404 Text */}
         <h1 className="text-[12rem] font-black leading-none text-main select-none opacity-20 blur-[2px] absolute -top-24 left-1/2 -translate-x-1/2 z-0">
           404
         </h1>

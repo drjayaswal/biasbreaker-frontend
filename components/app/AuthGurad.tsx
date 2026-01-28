@@ -14,7 +14,6 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const isPublicPath = publicPaths.includes(pathname);
     const token = localStorage.getItem("token");
 
-    // 1. No token + Private path -> Go to login
     if (!token) {
       if (!isPublicPath) {
         router.push("/connect");

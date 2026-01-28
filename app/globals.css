@@ -4,12 +4,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* Defining your custom brand colors */
+
   --color-dark: #0b5089;
   --color-main: #1976d2;
   --color-shadow: #cfd8dc;
 
-  /* You can also define custom spacing or shadows here if needed */
   --shadow-brand: 0 4px 6px -1px rgba(207, 216, 220, 0.5);
 }
 

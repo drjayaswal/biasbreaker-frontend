@@ -16,7 +16,7 @@ export interface AnalysisDetails {
 export interface FileData {
   id: string;
   filename: string;
-  s3_key?: string; // Made optional for Drive compatibility
+  s3_key?: string;
   status: "pending" | "processing" | "completed" | "failed";
   match_score: number | null;
   details: AnalysisDetails | null;

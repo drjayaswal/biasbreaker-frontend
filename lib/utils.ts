@@ -1,7 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-// 1. Define the FormatType union
 export type FormatType = 'full' | 'date' | 'time' | 'relative';
 
 export function cn(...inputs: ClassValue[]) {
@@ -14,7 +13,6 @@ export function formatDateTime(
 ): string {
   if (!input) return "N/A";
 
-  // Handles potential space in string formats (e.g., "2023-10-01 12:00:00")
   const date = typeof input === 'string' ? new Date(input.replace(' ', 'T')) : input;
   
   if (isNaN(date.getTime())) return "Invalid Date";
@@ -45,7 +43,6 @@ export function formatDateTime(
       const now = new Date();
       const diffInMs = now.getTime() - date.getTime();
       
-      // Handle future dates or "Just now"
       if (diffInMs < 0) return "Just now"; 
       
       const diffInMins = Math.floor(diffInMs / (1000 * 60));

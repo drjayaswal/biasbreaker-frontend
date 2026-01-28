@@ -12,12 +12,10 @@ import {
   Trash2,
   Download,
   Paperclip,
-  Search,
   CheckCircle2,
   Clock,
   AlertCircle,
   X,
-  ServerCogIcon,
   PlugZap,
   Loader,
   RefreshCcw,
@@ -25,7 +23,6 @@ import {
   Cog,
   MenuSquare,
 } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import Script from "next/script";
 import { FileData } from "@/lib/interface";
 import drive from "@/public/drive.png";
@@ -366,41 +363,39 @@ export function Services({ user }: { user: any }) {
         }
       />
 
-<div className="sticky top-3 sm:top-4 bg-white/80 backdrop-blur-xl shadow-lg sm:rounded-full rounded-2xl mx-2 sm:mx-3 md:mx-4 z-50 border border-white/20">
-  <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-2.5 sm:py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4 group transition-all duration-500 group-focus-within:flex-row group-focus-within:items-center">
-    
-    <div className="flex items-center shrink-0 transition-all duration-500 ease-in-out">
-      <div className="p-2 sm:p-2.5 bg-main/10 rounded-xl sm:rounded-4xl shadow-inner border border-main/10 shrink-0 transition-all duration-500 group-focus-within:scale-110 group-focus-within:bg-main/20 group-focus-within:shadow-main/20">
-        <MenuSquare className="w-5 h-5 sm:w-6 sm:h-6 text-main group-focus-within:animate-pulse" />
-      </div>
-      
-      <div className="flex flex-col items-center ml-3 group-focus-within:ml-3 transition-all duration-500 ease-in-out max-w-50 opacity-100 sm:group-focus-within:max-w-0 group-focus-within:opacity-100 sm:group-focus-within:ml-0 overflow-hidden">
-        <h1 className="text-sm sm:text-lg md:text-xl font-bold text-dark tracking-tight leading-tight whitespace-nowrap">
-          Services
-        </h1>
-        <p className="text-[8px] sm:text-[10px] uppercase tracking-widest text-slate-400 font-bold whitespace-nowrap">
-          Workspace
-        </p>
-      </div>
-    </div>
+      <div className="sticky top-3 sm:top-4 bg-white/80 backdrop-blur-xl shadow-lg sm:rounded-full rounded-2xl mx-2 sm:mx-3 md:mx-4 z-50 border border-white/20">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-2.5 sm:py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4 group transition-all duration-500 group-focus-within:flex-row group-focus-within:items-center">
+          <div className="flex items-center shrink-0 transition-all duration-500 ease-in-out">
+            <div className="p-2 sm:p-2.5 bg-main/10 rounded-xl sm:rounded-4xl shadow-inner border border-main/10 shrink-0 transition-all duration-500 group-focus-within:scale-110 group-focus-within:bg-main/20 group-focus-within:shadow-main/20">
+              <MenuSquare className="w-5 h-5 sm:w-6 sm:h-6 text-main group-focus-within:animate-pulse" />
+            </div>
 
-    <div className="flex-1 w-full items-center relative transition-all duration-500 ease-in-out">
-      <textarea
-        placeholder="Provide description..."
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="w-full pl-3 sm:pl-4 pr-11 sm:pr-12 py-2.5 sm:py-3 rounded-3xl bg-gray-100/50 focus:bg-white text-xs sm:text-sm text-dark placeholder:text-slate-400 focus:outline-none focus:ring-2 ring-main/20 transition-all resize-none h-10 sm:h-13 shadow-sm"
-      />
-      
-      <label className="absolute right-2 sm:right-2 top-1.5 sm:top-2.5 cursor-pointer p-1.5 sm:p-2 bg-white/80 hover:bg-white shadow-sm rounded-full hover:text-main transition-all shrink-0">
-        <Paperclip className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-        <input type="file" className="hidden" accept=".pdf,.docx,.txt" />
-      </label>
-    </div>
-  </div>
-</div>
+            <div className="flex flex-col items-center ml-3 group-focus-within:ml-3 transition-all duration-500 ease-in-out max-w-50 opacity-100 sm:group-focus-within:max-w-0 group-focus-within:opacity-100 sm:group-focus-within:ml-0 overflow-hidden">
+              <h1 className="text-sm sm:text-lg md:text-xl font-bold text-dark tracking-tight leading-tight whitespace-nowrap">
+                Services
+              </h1>
+              <p className="text-[8px] sm:text-[10px] uppercase tracking-widest text-slate-400 font-bold whitespace-nowrap">
+                Workspace
+              </p>
+            </div>
+          </div>
+
+          <div className="flex-1 w-full items-center relative transition-all duration-500 ease-in-out">
+            <textarea
+              placeholder="Provide description..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full pl-3 sm:pl-4 pr-11 sm:pr-12 py-2.5 sm:py-3 rounded-3xl bg-gray-100/50 focus:bg-white text-xs sm:text-sm text-dark placeholder:text-slate-400 focus:outline-none focus:ring-2 ring-main/20 transition-all resize-none h-10 sm:h-13 shadow-sm"
+            />
+
+            <label className="absolute right-2 sm:right-2 top-1.5 sm:top-2.5 cursor-pointer p-1.5 sm:p-2 bg-white/80 hover:bg-white shadow-sm rounded-full hover:text-main transition-all shrink-0">
+              <Paperclip className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <input type="file" className="hidden" accept=".pdf,.docx,.txt" />
+            </label>
+          </div>
+        </div>
+      </div>
       <div className="max-w-6xl mx-auto px-2 sm:px-3 md:px-6 mt-6 sm:mt-8 md:mt-12">
-        {/* Action Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-8 sm:mb-12 md:mb-16">
           {[
             {
@@ -551,7 +546,6 @@ export function Services({ user }: { user: any }) {
                       }`}
                     >
                       <div className="flex items-start sm:items-center gap-2 sm:gap-3 md:gap-4 flex-1 min-w-0 w-full">
-                        {/* Icon Container */}
                         <div
                           className={`shrink-0 w-9 h-9 sm:w-10 sm:h-10 md:w-14 md:h-14 text-gray-400 bg-gray-50 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300 ${
                             isInteractive &&
@@ -561,10 +555,9 @@ export function Services({ user }: { user: any }) {
                           <File className="w-4.5 h-4.5 sm:w-5 sm:h-5 md:w-7 md:h-7" />
                         </div>
 
-                        {/* File Info */}
                         <div className="flex-1 min-w-0">
                           <h3
-                            className={`font-bold text-sm sm:text-base md:text-lg truncate leading-tight transition-colors break-words ${
+                            className={`font-bold text-sm sm:text-base md:text-lg truncate leading-tight transition-colors wrap-break-word ${
                               isInteractive
                                 ? "group-hover:text-main text-dark"
                                 : "text-slate-400"
@@ -582,7 +575,6 @@ export function Services({ user }: { user: any }) {
                         </div>
                       </div>
 
-                      {/* Match Score */}
                       {file.match_score !== null &&
                         file.status !== "processing" && (
                           <div className="text-right shrink-0 ml-auto sm:ml-0">
@@ -596,21 +588,19 @@ export function Services({ user }: { user: any }) {
                         )}
                     </div>
 
-                    {/* Footer Action - only visible if interactive */}
                     {isInteractive && (
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
                         <span className="text-[8px] sm:text-[9px] md:text-xs font-bold text-slate-400 flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
                           {file.details?.total_matches} Skills Identified
                         </span>
-                        <button className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-1.5 md:py-2 text-[9px] sm:text-[10px] md:text-xs bg-slate-50 hover:bg-main hover:text-white transition-all duration-300 font-bold text-slate-500 rounded-lg sm:rounded-xl flex items-center justify-center sm:justify-start gap-2 flex-shrink-0">
+                        <button className="w-full sm:w-auto px-3 sm:px-4 md:px-6 py-1.5 md:py-2 text-[9px] sm:text-[10px] md:text-xs bg-slate-50 hover:bg-main hover:text-white transition-all duration-300 font-bold text-slate-500 rounded-lg sm:rounded-xl flex items-center justify-center sm:justify-start gap-2 shrink-0">
                           View Report
                           <ChevronRight className="w-3 h-3" />
                         </button>
                       </div>
                     )}
 
-                    {/* Subtle Decorative Orb */}
                     <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-main/5 rounded-full blur-2xl group-hover:bg-main/10 transition-colors" />
                   </div>
                 );
@@ -688,7 +678,6 @@ export function Services({ user }: { user: any }) {
                 </div>
               </div>
 
-              {/* Chart Section - Appears first on mobile for immediate visual impact */}
               <div className="order-1 lg:order-2 flex flex-col items-center justify-center bg-slate-50 rounded-2xl sm:rounded-[2rem] md:rounded-[2.5rem] lg:rounded-[3rem] p-3 sm:p-4 md:p-6 lg:p-8 border border-slate-100">
                 <div
                   ref={chartRef}
@@ -718,7 +707,6 @@ export function Services({ user }: { user: any }) {
           </div>
         </div>
       )}
-      {/* Hidden Inputs Linked to Logic */}
       <input
         type="file"
         ref={fileInputRef}

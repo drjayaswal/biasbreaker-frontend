@@ -4,6 +4,16 @@ export interface RadarData {
   fullMark: number;
 }
 
+export interface CandidateContact {
+  emails: string[];
+  phones: string[];
+  links: string[];
+}
+
+export interface CandidateInfo {
+  contact: CandidateContact;
+}
+
 export interface AnalysisDetails {
   matched_keywords: string[];
   total_matches: number;
@@ -20,5 +30,6 @@ export interface FileData {
   status: "pending" | "processing" | "completed" | "failed";
   match_score: number | null;
   details: AnalysisDetails | null;
+  candidate_info?: CandidateInfo;
   created_at: string;
 }

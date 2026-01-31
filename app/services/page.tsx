@@ -6,6 +6,7 @@ import { Services } from "@/components/app/Services";
 import { useRouter } from "next/navigation";
 import { getBaseUrl } from "@/lib/utils";
 import { Loader } from "lucide-react";
+import Loading from "@/components/ui/loading";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<{ email: string; id: string } | null>(null);
@@ -42,7 +43,7 @@ export default function ProfilePage() {
     fetchProfile();
   }, []);
 
-  if (loading) return <Loader className="w-full text-white animate-spin" />
+  if (loading) return <Loading/>
   if (!user) return router.push("/connect")
 
   return (

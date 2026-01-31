@@ -2,8 +2,8 @@
 import Link from "next/link";
 
 const Footer = () => {
-  return (
-    <footer className="w-full z-50 bg-black backdrop-blur-md border-t border-white fixed bottom-0 left-0 text-white">
+      return (
+  <footer className="w-full z-10 bg-black backdrop-blur-md border-t border-white/10 fixed bottom-0 left-0 text-white">
       <div className="max-w-7xl mx-auto px-4 py-3 md:px-8">
         <div className="flex flex-col gap-y-3 md:flex-row md:justify-between md:items-center">
 

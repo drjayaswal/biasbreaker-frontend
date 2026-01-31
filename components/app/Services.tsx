@@ -3,7 +3,6 @@
 import { toPng } from "html-to-image";
 import { toast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import React, { useEffect, useRef, useState } from "react";
 import { useGoogleLogin } from "@react-oauth/google";
 import {
@@ -24,18 +23,19 @@ import {
 import Script from "next/script";
 import { FileData } from "@/lib/interface";
 import { AnalysisChart } from "../ui/radar";
-import { getBaseUrl } from "@/lib/utils";
+import { cn, getBaseUrl } from "@/lib/utils";
 import Image from "next/image";
+import Loading from "../ui/loading";
 
 export function Services({ user }: { user: any }) {
   const id = user;
   const ref = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [description, setDescription] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
-  const [description, setDescription] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [isPickerLoaded, setIsPickerLoaded] = useState(false);
   const [extractedData, setExtractedData] = useState<FileData[]>([]);
   const [selectedFileData, setSelectedFileData] = useState<FileData | null>(
@@ -58,6 +58,8 @@ export function Services({ user }: { user: any }) {
       });
       if (res.ok) {
         const history = await res.json();
+        console.log(history);
+
         setExtractedData(history);
         const stillWorking = history.some(
           (f: any) => f.status === "pending" || f.status === "processing",
@@ -143,13 +145,20 @@ export function Services({ user }: { user: any }) {
     }
   };
   const exportToCSV = () => {
+    const completedFiles = extractedData.filter(
+      (file) => file.status === "completed",
+    );
+
+    if (completedFiles.length === 0) {
+      toast.error("No completed files to export");
+      return;
+    }
+
     toast.success("Save CSV?", {
-      description: "This will download the Report.csv",
+      description: `Download report for ${completedFiles.length} completed files`,
       action: {
         label: "Download",
         onClick: () => {
-          if (extractedData.length === 0) return;
-
           const fileName = `Report.csv`;
 
           const headers = [
@@ -157,29 +166,28 @@ export function Services({ user }: { user: any }) {
             "Filename",
             "Status",
             "Match Score (%)",
-            "Matched Keywords",
-            "Missing Keywords",
+            "Emails",
+            "Phones",
+            "Links",
             "Created At",
           ];
 
-          const rows = extractedData.map((file) => {
-            const matched = file.details?.matched_keywords || [];
-            const missing = file.details?.missing_keywords || [];
+          const rows = completedFiles.map((file) => {
+            const emails = file.candidate_info?.contact?.emails || [];
+            const phones = file.candidate_info?.contact?.phones || [];
+            const links = file.candidate_info?.contact?.links || [];
 
             const displayScore =
-              file.match_score !== null
-                ? file.match_score <= 1
-                  ? file.match_score
-                  : file.match_score
-                : "N/A";
+              file.match_score !== null ? file.match_score : "N/A";
 
             return [
               `"${file.id}"`,
-              `"${file.filename.split("/")[file.filename.split("/").length - 1]}"`,
+              `"${file.filename.split("/").pop()}"`,
               file.status.toUpperCase(),
               displayScore,
-              `"${matched.join(", ")}"`,
-              `"${missing.join(", ")}"`,
+              `"${emails.join(", ")}"`,
+              `"${phones.join(", ")}"`,
+              `"${links.join(", ")}"`,
               `"${new Date(file.created_at).toLocaleString()}"`,
             ];
           });
@@ -380,11 +388,15 @@ export function Services({ user }: { user: any }) {
       e.target.value = "";
     }
   };
-
-  if (isLoading) return <Loader className="w-full text-white animate-spin" />;
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-emerald-500";
+    if (score >= 50) return "text-amber-500";
+    return "text-red-500";
+  };
+  if (isLoading) return <Loading />;
 
   return (
-    <div>
+    <div className="bg-transparent text-white font-mono pt-15.5">
       <Script
         src="https://apis.google.com/js/api.js"
         onLoad={() =>
@@ -392,222 +404,248 @@ export function Services({ user }: { user: any }) {
         }
       />
 
-      <div className="sticky top-2 xs:top-2.5 sm:top-3 md:top-4 mx-1.5 xs:mx-2 sm:mx-3 md:mx-4">
-        <div className="max-w-6xl mx-auto px-2 xs:px-3 sm:px-4 md:px-6 py-2 xs:py-2.5 sm:py-3 md:py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-2 xs:gap-2.5 sm:gap-3 md:gap-4 group transition-all duration-500 group-focus-within:flex-row group-focus-within:items-center">
-          <div className="flex-1 w-full items-center relative transition-all duration-500 ease-in-out min-w-0">
-            <textarea
-              placeholder="Provide description..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full pl-3 xs:pl-3 sm:pl-4 pr-9 xs:pr-10 sm:pr-12 py-2 xs:py-2.5 sm:py-3 border border-white/20 focus:border-white text-xs xs:text-sm sm:text-base md:text-lg text-white placeholder:text-white/30 focus:outline-none focus:ring-0 transition-all resize-none h-8 xs:h-10 sm:h-11 md:h-12 lg:h-13 font-mono"
-            />
-            {!description && (
-              <div className="flex gap-2 items-center absolute right-10 xs:right-9 sm:right-10 md:right-14 top-1 xs:top-1.5 sm:top-2 md:top-2 px-2 xs:p-1.5 sm:px-3 sm:p-1.5 text-white/40">
-                or upload <MoveRight className="w-6 text-white/20" />
-              </div>
-            )}
-            {description && (
-              <button
-                className="flex absolute right-10 xs:right-9 sm:right-10 md:right-14 top-1 xs:top-1.5 sm:top-2 md:top-2 cursor-pointer px-2 xs:p-1.5 sm:px-3 sm:p-1.5 hover:bg-red-500 text-white transition-all shrink-0"
-                onClick={() => setDescription("")}
-              >
-                <Delete className="w-6 text-current" />
-              </button>
-            )}
-            <label className="flex absolute right-2 xs:right-1.5 sm:right-2 top-1 xs:top-1.5 sm:top-2 md:top-2 cursor-pointer px-2 xs:p-1.5 sm:px-3 sm:p-1.5 hover:bg-indigo-500 text-white transition-all shrink-0">
-              <Paperclip className="w-6 text-current" />
-              <input
-                type="file"
-                className="hidden"
-                onChange={getDescription}
-                accept=".pdf,.docx,.txt"
-              />
-            </label>
-          </div>
-        </div>
-      </div>
-      <div className="max-w-6xl mx-auto px-1.5 xs:px-2 sm:px-3 md:px-4 lg:px-6 mt-4 xs:mt-5 sm:mt-6 md:mt-8 lg:mt-8">
-        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 mb-8 xl:mb-5">
-          {[
-            {
-              title: "Google Drive",
-              icon: (
-                <Image
-                  src="/drive.png"
-                  alt="Drive"
-                  width={25}
-                  height={25}
-                  className="invert transition-all"
-                />
-              ),
-              handler: () => {
-                if (!description.trim()) {
-                  return toast.error("Description Required", {
-                    description: "Please provide description to connect Drive",
-                  });
-                }
-                login();
-              },
-            },
-            {
-              title: "Upload Folder",
-              icon: <Folder className="w-6 h-6" />,
-              handler: () => {
-                if (!description.trim()) {
-                  return toast.error("Description Required", {
-                    description: "Please provide description to upload Folder",
-                  });
-                }
-                folderInputRef.current?.click();
-              },
-            },
-            {
-              title: "Quick File",
-              icon: <File className="w-6 h-6" />,
-              handler: () => {
-                if (!description.trim()) {
-                  return toast.error("Description Required", {
-                    description: "Please provide description to upload File",
-                  });
-                }
-                fileInputRef.current?.click();
-              },
-            },
-            {
-              title: "Watch Folder",
-              icon: (
-                <div className="text-[10px] font-bold border border-white/30 px-1">
-                  LOCK
-                </div>
-              ),
-              handler: () => toast.info("feature in development..."),
-              disabled: true,
-            },
-          ].map((action, idx) => (
-            <button
-              key={idx}
-              onClick={action.handler}
-              disabled={action.disabled}
-              className={`
-                group relative flex items-center justify-center gap-3 py-3 px-4 transition-all duration-200
-                ${
-                  action.disabled
-                    ? "text-white/30 cursor-not-allowed"
-                    : "bg-black border-white hover:border-indigo-500 text-white hover:bg-indigo-500 active:scale-95 cursor-pointer"
-                }
-              `}
-            >
-              <div className={`${action.disabled ? "opacity-50" : ""}`}>
-                {action.icon}
-              </div>
-              <h3 className="text-sm font-bold uppercase tracking-tight">
-                {action.title}
+      <div className="max-w-full grid grid-cols-1 lg:grid-cols-10 gap-0 h-full lg:h-[calc(100vh-80px)]">
+        <div className="lg:col-span-6 p-6 lg:p-12 flex flex-col space-y-10 border-r border-white/5">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">
+                Description
               </h3>
-            </button>
-          ))}
-        </div>
-
-        {extractedData.length !== 0 && (
-          <div className="sm:p-10 p-5 space-y-3 xs:space-y-4 sm:space-y-5 md:space-y-6 border border-white/30">
-            <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 xs:gap-3 sm:gap-4">
-              <h2 className="text-base xs:text-lg sm:text-xl md:text-2xl font-bold text-white">
-                Files{" "}
-                <span className="text-white/30 ml-1">
-                  ({extractedData.length})
+              {description && (
+                <span className="text-[10px] text-indigo-400">
+                  Ready for Analysis
                 </span>
-              </h2>
-              <div className="flex w-full xs:w-auto">
-                <Button
-                  variant="ghost"
-                  onClick={fetchHistory}
-                  className="text-[10px] xs:text-[11px] sm:text-xs md:text-sm text-white hover:bg-indigo-500 hover:text-white rounded-none h-7 xs:h-8 sm:h-9 px-2 xs:px-2.5 sm:px-3"
-                >
-                  <RefreshCcw
-                    className={`w-3 xs:w-3.5 sm:w-4 mr-1 ${isProcessing ? "animate-spin" : ""}`}
-                  />{" "}
-                  Refresh
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={exportToCSV}
-                  className="text-[10px] xs:text-[11px] sm:text-xs md:text-sm text-white hover:bg-green-500 hover:text-white rounded-none h-7 xs:h-8 sm:h-9 px-2 xs:px-2.5 sm:px-3"
-                >
-                  <Download className="w-3 xs:w-3.5 sm:w-4 mr-1" /> Export
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={resetHistory}
-                  className="text-[10px] xs:text-[11px] sm:text-xs md:text-sm text-white hover:bg-red-500 hover:text-white rounded-none h-7 xs:h-8 sm:h-9 px-2 xs:px-2.5 sm:px-3"
-                >
-                  <Trash2 className="w-3 xs:w-3.5 sm:w-4 mr-1" /> Erase
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 xs:gap-2.5 sm:gap-3 md:gap-4">
-              {extractedData.length !== 0 && (
-                <div className="space-y-6">
-                  <div className="flex flex-col gap-4">
-                    {extractedData.map((file, idx) => {
-                      const config = getStatusConfig(file.status);
-                      const displayFilename = file.filename.split("/").pop();
-                      const isInteractive =
-                        file.details &&
-                        !["processing", "failed", "pending"].includes(
-                          file.status,
-                        );
-
-                      return (
-                        <div
-                          key={idx}
-                          onClick={() =>
-                            isInteractive && setSelectedFileData(file)
-                          }
-                          className={`group py-4 px-6 ${isInteractive ? "cursor-pointer transition-transform transform hover:scale-105" : "cursor-not-allowed"}`}
-                        >
-                          <div className="flex items-center justify-between p-4 transition-all duration-200">
-                            <div className="flex items-center gap-4">
-                              <div
-                                className={`w-12 h-12 transition-colors duration-300 ${isInteractive && "group-hover:bg-indigo-500"} flex items-center justify-center`}
-                              >
-                                <File className="w-6 h-6 text-white" />
-                              </div>
-                              <div>
-                                <h3 className="font-bold text-lg text-white">
-                                  {displayFilename &&
-                                  displayFilename.length > 35
-                                    ? `${displayFilename.slice(0, 25)}...${displayFilename.split(".").pop()}`
-                                    : displayFilename}
-                                </h3>
-                                <div
-                                  className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-black ${config.bg}`}
-                                >
-                                  {config.icon} {file.status.toUpperCase()}
-                                </div>
-                              </div>
-                            </div>
-                            {file.match_score !== null && (
-                              <div className="text-right">
-                                <div
-                                  className={`text-3xl font-black text-slate-300 ${isInteractive && "group-hover:text-indigo-500"} `}
-                                >
-                                  {file.match_score}%
-                                </div>
-                                <div className="text-[10px] font-black text-white/50 uppercase">
-                                  Match
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
               )}
             </div>
+
+            <div className="relative group">
+              <textarea
+                placeholder="Paste the requirements here..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full h-64 p-6 bg-black border-dashed border focus:border-white/40 border-white/30 text-sm leading-relaxed text-white placeholder:text-white/40 outline-none transition-all resize-none"
+              />
+              <div className="absolute top-1 right-1 flex flex-col">
+                {description && (
+                  <button
+                    onClick={() => setDescription("")}
+                    className="p-2 bg-black cursor-pointer text-white hover:bg-red-500 transition-all"
+                  >
+                    <Delete className="w-5 h-5" />
+                  </button>
+                )}
+                <label className="p-2 bg-black cursor-pointer text-white hover:bg-indigo-500 transition-all">
+                  <Paperclip className="w-5 h-5" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={getDescription}
+                    accept=".pdf,.docx,.txt"
+                  />
+                </label>
+              </div>
+            </div>
           </div>
-        )}
+          <div className="space-y-4">
+            <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] px-1">
+              Source Selection
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 bg-black border border-white/20">
+              {[
+                {
+                  title: "Google Drive",
+                  icon: (
+                    <Image
+                      src="/drive.png"
+                      alt="D"
+                      width={20}
+                      height={20}
+                      className="invert opacity-60 group-hover:opacity-100"
+                    />
+                  ),
+                  handler: () =>
+                    description.trim()
+                      ? login()
+                      : toast.error("Description Required"),
+                  color: "hover:bg-indigo-700",
+                },
+                {
+                  title: "Upload Folder",
+                  icon: (
+                    <Folder className="w-5 h-5 text-white/60 group-hover:text-white" />
+                  ),
+                  handler: () =>
+                    description.trim()
+                      ? folderInputRef.current?.click()
+                      : toast.error("Description Required"),
+                  color: "hover:bg-lime-700",
+                },
+                {
+                  title: "Quick File",
+                  icon: (
+                    <File className="w-5 h-5 text-white/60 group-hover:text-white" />
+                  ),
+                  handler: () =>
+                    description.trim()
+                      ? fileInputRef.current?.click()
+                      : toast.error("Description Required"),
+                  color: "hover:bg-fuchsia-700",
+                },
+                {
+                  title: "Watch Folder",
+                  icon: (
+                    <span className="text-[9px] border border-white/20 px-1 opacity-40">
+                      LOCK
+                    </span>
+                  ),
+                  handler: () => toast.info("Coming soon..."),
+                  disabled: true,
+                },
+              ].map((btn, i) => (
+                <button
+                  key={i}
+                  onClick={btn.handler}
+                  disabled={btn.disabled}
+                  className={cn(
+                    "group/btn relative flex items-center justify-between overflow-hidden px-8 py-4 font-bold text-white transition-all duration-500",
+                    btn.disabled
+                      ? "opacity-30 cursor-not-allowed"
+                      : cn("cursor-pointer hover:bg-indigo-600", btn.color),
+                  )}
+                >
+                  <span className="relative z-10 transition-all duration-500 group-hover/btn:tracking-widest mr-4">
+                    {btn.title}
+                  </span>
+                  <div className="relative flex items-center justify-center h-6 w-6 overflow-hidden">
+                    <div className="absolute transform transition-all duration-500 -translate-x-full opacity-0 group-hover/btn:translate-x-0 group-hover/btn:opacity-100 flex items-center justify-center">
+                      {btn.icon}
+                    </div>
+                    <div className="transition-all duration-500 opacity-100 group-hover/btn:translate-x-full group-hover/btn:opacity-0 flex items-center justify-center">
+                      {btn.icon}
+                    </div>
+                  </div>
+                  {!btn.disabled && (
+                    <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 ease-in-out group-hover/btn:translate-x-full" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="lg:col-span-4 flex flex-col border-2 bg-black border-white/10">
+          <div className="px-6 py-4 flex items-center justify-between sticky top-0 bg-black/90 backdrop-blur-md z-20">
+            <div className="flex items-baseline gap-3">
+              <h2 className="text-[11px] font-black tracking-[0.3em] uppercase text-white/90">
+                Analysis
+              </h2>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[12px] font-mono text-white/30">
+                  {extractedData.length.toString().padStart(2, "0")}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center bg-white/5 border border-white/10 p-0.5">
+              <button
+                onClick={fetchHistory}
+                title="Sync History"
+                className="group cursor-pointer flex items-center justify-center h-8 w-9 transition-all hover:bg-indigo-500"
+              >
+                <RefreshCcw
+                  className={cn(
+                    "w-3.5 h-3.5 text-white transition-all",
+                    isProcessing && "animate-spin",
+                  )}
+                />
+              </button>
+              <div className="w-px h-4 bg-white/10" />
+              <button
+                onClick={exportToCSV}
+                title="Export CSV"
+                className="group cursor-pointer flex items-center justify-center h-8 w-9 transition-all hover:bg-emerald-600"
+              >
+                <Download className="w-3.5 h-3.5 text-white transition-all" />
+              </button>
+              <div className="w-px h-4 bg-white/10" />
+              <button
+                onClick={resetHistory}
+                title="Clear All"
+                className="group cursor-pointer flex items-center justify-center h-8 w-9 transition-all hover:bg-red-500"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-white transition-all" />
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto no-scrollbar p-2 border-t-2 border-white/10">
+            {extractedData.length === 0 ? (
+              <div className="h-full flex border-x-2 border-dashed border-white/30 flex-col items-center justify-center space-y-4">
+                <div className="w-16 h-16 flex items-center justify-center">
+                  <File className="w-6 h-6" />
+                </div>
+                <p className="text-xs uppercase tracking-widest">
+                  Awaiting Uploads
+                </p>
+              </div>
+            ) : (
+              <div>
+                {extractedData.map((file, idx) => {
+                  const config = getStatusConfig(file.status);
+                  const isInteractive =
+                    file.details &&
+                    !["processing", "failed", "pending"].includes(file.status);
+
+                  return (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      key={file.id || idx}
+                      onClick={() => isInteractive && setSelectedFileData(file)}
+                      className={cn(
+                        "p-4 border border-white/5  group transition-all",
+                        isInteractive
+                          ? "cursor-pointer hover:border-white/20 hover:bg-black"
+                          : "cursor-default",
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 min-w-0">
+                          <File className="w-8 h-8 text-white/50 group-hover:text-white transition-colors" />
+                          <div className="min-w-0">
+                            <h4 className="text-sm font-bold truncate pr-4">
+                              {file.filename.split("/").pop()}
+                            </h4>
+                            <div
+                              className={cn(
+                                "text-[9px] font-black uppercase inline-flex items-center gap-1 mt-1 px-1.5 py-0.5",
+                                config.bg,
+                              )}
+                            >
+                              {config.icon} {file.status}
+                            </div>
+                          </div>
+                        </div>
+                        {file.match_score !== null && (
+                          <div className="text-right shrink-0">
+                            <div
+                              className={cn(
+                                "text-xl font-black transition-colors duration-500",
+                                getScoreColor(file.match_score),
+                              )}
+                            >
+                              {file.match_score}%
+                            </div>
+                            <div className="text-[8px] text-white/30 uppercase tracking-tighter font-bold">
+                              Match Rate
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <AnimatePresence>
@@ -619,10 +657,10 @@ export function Services({ user }: { user: any }) {
               exit={{ opacity: 0 }}
               onClick={() => setSelectedFileData(null)}
               transition={{ duration: 0.1, ease: "easeInOut" }}
-              className="fixed inset-0 bg-white/20 backdrop-blur-md h-full w-full z-60"
+              className="fixed inset-0 backdrop-blur-md h-full w-full z-30"
             />
             <div
-              className="fixed inset-0 grid place-items-center z-100"
+              className="fixed inset-0 grid place-items-center z-500"
               onClick={() => setSelectedFileData(null)}
             >
               <motion.div
@@ -731,9 +769,9 @@ export function Services({ user }: { user: any }) {
                         transition={{ delay: 0.1, duration: 0.1 }}
                         className="w-full"
                       >
-                        <Button className="mt-1 w-full bg-black hover:bg-indigo-700 text-white rounded-none h-12 transition-colors">
+                        <button className="mt-1 w-full bg-black hover:bg-indigo-700 text-white rounded-none h-12 transition-colors">
                           Download Analysis
-                        </Button>
+                        </button>
                       </motion.div>
                     </div>
                   </motion.div>

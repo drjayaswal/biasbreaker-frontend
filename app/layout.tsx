@@ -6,7 +6,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "sonner";
 import AuthGuard from "@/components/app/AuthGurad";
-import { AlertCircle, CheckCircle2, Info, Loader } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "BiasBreaker",
-  description: "AI-driven utility to ensure fair and unbiased selection",
+  description: "AI-driven utility to ensure fair and unbiased",
   icons: { icon: "/logo.png" },
 };
 
@@ -38,21 +38,25 @@ export default function RootLayout({
             className:
               "bg-main text-black border-none font-bold rounded-2xl shadow-2xl",
           }}
-          icons={{
-            success: <CheckCircle2 className="text-green-500" size={18} />,
-            error: <AlertCircle className="text-rose-500" size={18} />,
-            info: <Info className="text-blue-500" size={18} />,
-            loading: <Loader className="animate-spin text-black" size={18} />,
-          }}
         />
         <GoogleOAuthProvider
           clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}
         >
           <AuthGuard>
             <Navbar />
-            <div className="min-h-screen py-20 w-full flex flex-col items-center justify-center overflow-x-hidden font-mono">
-              {children}
-            </div>
+            <main className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-x-hidden font-mono bg-black">
+              <div
+                className={cn(
+                  "absolute inset-0 z-0",
+                  "bg-size-[71px_71px]",
+                  "bg-[linear-gradient(to_right,#262626_1px,transparent_1px),linear-gradient(to_bottom,#262626_1px,transparent_1px)]",
+                )}
+              />
+              <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center" />
+              <div className="relative z-10 w-full items-center">
+                {children}
+              </div>
+            </main>
             <Footer />
           </AuthGuard>
         </GoogleOAuthProvider>

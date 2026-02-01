@@ -12,7 +12,7 @@ export default function HeroSection() {
   const router = useRouter();
 
   return (
-    <div className="relative min-h-[80vh] flex flex-col items-center justify-center text-white font-sans">
+    <div className="relative min-h-[59vh] flex flex-col items-center justify-center text-white font-sans bg-black mb-13">
       <div
         className="absolute inset-0 z-0 opacity-10 pointer-events-none"
         style={{
@@ -30,7 +30,7 @@ export default function HeroSection() {
         >
           404
         </motion.h1>
-        <div className="flex flex-wrap items-center justify-center">
+        <div className="flex flex-wrap items-center justify-center border border-white/20 divide-x divide-white/20">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}

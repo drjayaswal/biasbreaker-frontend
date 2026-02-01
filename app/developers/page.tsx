@@ -9,7 +9,7 @@ import { AnimatedButton } from "@/components/ui/animated-button";
 const Developers = () => {
   return (
     <div>
-      <div className="max-w-4xl mx-auto text-center mb-20 relative z-10">
+      <div className="max-w-4xl mx-auto text-center mb-19.5 relative z-10">
         <h1 className="text-4xl md:text-4xl font-bold text-white tracking-tight">
           Built by Developers for Recruiters
         </h1>
@@ -18,7 +18,7 @@ const Developers = () => {
         {devData.map((dev, index) => (
           <div
             key={index}
-            className="group relative p-8 transition-all duration-300 hover:border-indigo-500 hover:bg-black/40 shadow-2xl"
+            className="group relative p-8 transition-all duration-300 hover:border-indigo-500 shadow-2xl"
           >
             <div className="flex flex-col items-center sm:items-start sm:flex-row gap-8">
               <div className="relative shrink-0">
@@ -64,7 +64,7 @@ const Developers = () => {
             </div>
           </div>
         ))}
-        <div className="inline-flex items-center gap-2 px-4 py-2 mt-20 text-center relative z-10">
+        <div className="bg-black w-fit px-3 py-1.75">
           <AnimatedButton
             label="CONTRIBUTION"
             onClick={() =>

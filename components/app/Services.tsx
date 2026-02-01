@@ -19,6 +19,7 @@ import {
   Delete,
   MoveRight,
   Folder,
+  Lock,
 } from "lucide-react";
 import Script from "next/script";
 import { FileData } from "@/lib/interface";
@@ -58,8 +59,6 @@ export function Services({ user }: { user: any }) {
       });
       if (res.ok) {
         const history = await res.json();
-        console.log(history);
-
         setExtractedData(history);
         const stillWorking = history.some(
           (f: any) => f.status === "pending" || f.status === "processing",
@@ -360,19 +359,16 @@ export function Services({ user }: { user: any }) {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/get-description`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
+      const response = await fetch(`${getBaseUrl()}/get-description`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: formData,
+      });
       toast.dismiss(toastId);
+      const data = await response.json();
       if (response.ok) {
-        const data = await response.json();
         if (data.description) {
           setDescription(data.description);
           toast.success("Description updated from file");
@@ -404,26 +400,25 @@ export function Services({ user }: { user: any }) {
         }
       />
 
-      <div className="max-w-full grid grid-cols-1 lg:grid-cols-10 gap-0 h-full lg:h-[calc(100vh-80px)]">
-        <div className="lg:col-span-6 p-6 lg:p-12 flex flex-col space-y-10 border-r border-white/5">
+      <div className="max-w-full grid grid-cols-1 lg:grid-cols-10 h-full lg:h-[calc(100vh-80px)]">
+        <div className="lg:col-span-6 p-6 lg:pt-9.25 lg:pr-7 lg:pl-18 flex flex-col space-y-7.75 border-r border-white/5">
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
-              <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">
+              <h3 className="text-[12px] font-black text-white/40 uppercase tracking-[0.2em]">
                 Description
               </h3>
-              {description && (
+              {description.length > 100 && (
                 <span className="text-[10px] text-indigo-400">
                   Ready for Analysis
                 </span>
               )}
             </div>
-
             <div className="relative group">
               <textarea
                 placeholder="Paste the requirements here..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full h-64 p-6 bg-black border-dashed border focus:border-white/40 border-white/30 text-sm leading-relaxed text-white placeholder:text-white/40 outline-none transition-all resize-none"
+                className="w-full h-71 p-6 bg-black border-dashed border focus:border-white/40 border-white/20 text-sm leading-relaxed text-white placeholder:text-white/40 outline-none transition-all resize-none"
               />
               <div className="absolute top-1 right-1 flex flex-col">
                 {description && (
@@ -447,10 +442,10 @@ export function Services({ user }: { user: any }) {
             </div>
           </div>
           <div className="space-y-4">
-            <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] px-1">
+            <h3 className="text-[12px] font-black text-white/40 uppercase tracking-[0.2em] px-1">
               Source Selection
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 bg-black border border-white/20">
+            <div className="grid grid-cols-1 sm:grid-cols-2 bg-black border-dashed border p-3.5 border-white/20">
               {[
                 {
                   title: "Google Drive",
@@ -460,7 +455,7 @@ export function Services({ user }: { user: any }) {
                       alt="D"
                       width={20}
                       height={20}
-                      className="invert opacity-60 group-hover:opacity-100"
+                      className="invert group-hover:invert-0"
                     />
                   ),
                   handler: () =>
@@ -472,7 +467,7 @@ export function Services({ user }: { user: any }) {
                 {
                   title: "Upload Folder",
                   icon: (
-                    <Folder className="w-5 h-5 text-white/60 group-hover:text-white" />
+                    <Folder className="w-5 h-5 text-white group-hover:text-white" />
                   ),
                   handler: () =>
                     description.trim()
@@ -483,7 +478,7 @@ export function Services({ user }: { user: any }) {
                 {
                   title: "Quick File",
                   icon: (
-                    <File className="w-5 h-5 text-white/60 group-hover:text-white" />
+                    <File className="w-5 h-5 text-white group-hover:text-white" />
                   ),
                   handler: () =>
                     description.trim()
@@ -494,8 +489,8 @@ export function Services({ user }: { user: any }) {
                 {
                   title: "Watch Folder",
                   icon: (
-                    <span className="text-[9px] border border-white/20 px-1 opacity-40">
-                      LOCK
+                    <span className="text-[9px] border border-white/20 px-1">
+                      <Lock/>
                     </span>
                   ),
                   handler: () => toast.info("Coming soon..."),
@@ -532,8 +527,8 @@ export function Services({ user }: { user: any }) {
             </div>
           </div>
         </div>
-        <div className="lg:col-span-4 flex flex-col border-2 bg-black border-white/10">
-          <div className="px-6 py-4 flex items-center justify-between sticky top-0 bg-black/90 backdrop-blur-md z-20">
+        <div className="lg:col-span-4 flex flex-col h-full bg-black border-l border-white/13 overflow-hidden">
+          <div className="px-6 py-[16.1px] flex items-center justify-between bg-black/90 backdrop-blur-md z-20 border-y border-white/13 shrink-0">
             <div className="flex items-baseline gap-3">
               <h2 className="text-[11px] font-black tracking-[0.3em] uppercase text-white/90">
                 Analysis
@@ -544,7 +539,7 @@ export function Services({ user }: { user: any }) {
                 </span>
               </div>
             </div>
-            <div className="flex items-center bg-white/5 border border-white/10 p-0.5">
+            <div className="flex items-center bg-white/5 border border-white/13 p-0.5">
               <button
                 onClick={fetchHistory}
                 title="Sync History"
@@ -575,18 +570,16 @@ export function Services({ user }: { user: any }) {
               </button>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto no-scrollbar p-2 border-t-2 border-white/10">
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
             {extractedData.length === 0 ? (
-              <div className="h-full flex border-x-2 border-dashed border-white/30 flex-col items-center justify-center space-y-4">
-                <div className="w-16 h-16 flex items-center justify-center">
-                  <File className="w-6 h-6" />
-                </div>
-                <p className="text-xs uppercase tracking-widest">
+              <div className="h-full flex flex-col items-center justify-center space-y-4 opacity-30">
+                <File className="w-8 h-8" />
+                <p className="text-[10px] uppercase tracking-widest">
                   Awaiting Uploads
                 </p>
               </div>
             ) : (
-              <div>
+              <div className="divide-y divide-white/13 mb-20">
                 {extractedData.map((file, idx) => {
                   const config = getStatusConfig(file.status);
                   const isInteractive =
@@ -595,20 +588,21 @@ export function Services({ user }: { user: any }) {
 
                   return (
                     <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      key={file.id || idx}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      key={idx}
                       onClick={() => isInteractive && setSelectedFileData(file)}
                       className={cn(
-                        "p-4 border border-white/5  group transition-all",
+                        "p-[10.7px] group transition-all",
                         isInteractive
-                          ? "cursor-pointer hover:border-white/20 hover:bg-black"
-                          : "cursor-default",
+                          ? "cursor-pointer hover:bg-white/2"
+                          : "opacity-60",
                       )}
                     >
-                      <div className="flex items-center justify-between">
+                      {" "}
+                      <div className="flex px-2 items-center justify-between">
                         <div className="flex items-center gap-4 min-w-0">
-                          <File className="w-8 h-8 text-white/50 group-hover:text-white transition-colors" />
+                          <File className="w-8 h-6 text-white/50 group-hover:text-white transition-colors" />
                           <div className="min-w-0">
                             <h4 className="text-sm font-bold truncate pr-4">
                               {file.filename.split("/").pop()}

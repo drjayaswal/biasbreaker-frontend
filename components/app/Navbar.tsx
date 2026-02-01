@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 const Navbar = () => {
   const router = useRouter();
   return (
-    <nav className="fixed w-full z-20 px-8 py-3 flex justify-between bg-black items-center shadow-xs">
+    <nav className="fixed w-full z-20 px-8 py-[12.5px] flex justify-between bg-black border-b border-white/13 items-center shadow-xs">
       <div className="flex items-center gap-2 font-black text-2xl text-dark">
         <Image
           className="cursor-pointer hover:invert-100 rounded-full transition-all duration-500"

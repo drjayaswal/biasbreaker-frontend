@@ -45,7 +45,7 @@ export default function Connect() {
 
   return (
     <div className="flex flex-col items-center justify-center shadow-xl py-10 px-4 rounded-[5rem] relative overflow-hidden">
-      <div className="relative z-10 w-full min-w-md mx-auto px-6 ">
+      <div className="relative z-10 w-full max-w-md mx-auto px-6 ">
         <div className="text-center mb-10">
           <h1 className="text-5xl font-bold text-white">
             Bias<span className="text-indigo-600">~</span>Breaker

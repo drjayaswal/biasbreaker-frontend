@@ -59,12 +59,20 @@ git commit -m "specify the changes made"
 ```
 
 To build and push the Docker image providing the Google Client ID, use:
+## Platform Dependent MAC
 ```bash
 docker build \
 --build-arg NEXT_PUBLIC_GOOGLE_CLIENT_ID=google-client-id \
 -t dhruv2k3/biasbreaker-frontend:latest .
 ```
-
+## Platform Independent MAC
+```bash
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --build-arg NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-id \
+  -t dhruv2k3/biasbreaker-frontend:latest \
+  --push .
+```
 
 To test the image locally, use:
 ```bash

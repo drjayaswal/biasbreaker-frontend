@@ -31,7 +31,7 @@ const Footer = () => {
               ML Server
             </Link>
             <Link
-              href="http://localhost:8000/docs"
+              href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/docs`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[9px] p-2 md:text-[10px] hover:bg-indigo-500 text-white transition-colors uppercase tracking-tighter whitespace-nowrap"

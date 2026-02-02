@@ -3,6 +3,7 @@
 import {
   ArrowRight,
   Cog,
+  Wrench,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AnimatedButton } from "@/components/ui/animated-button";
@@ -50,7 +51,7 @@ export default function HeroSection() {
             <AnimatedButton
               label="Services"
               onClick={() => router.push("/services")}
-              Icon={Cog}
+              Icon={Wrench}
               rotateIcon 
             />
           </motion.div>

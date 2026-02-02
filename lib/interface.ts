@@ -15,12 +15,18 @@ export interface CandidateInfo {
 }
 
 export interface AnalysisDetails {
-  matched_keywords: string[];
-  total_matches: number;
-  missing_keywords: string[];
-  total_lags: number;
-  radar_data: RadarData[];
-  summary: string;
+    matched_skills: string[];
+    total_matched_skills: number
+    missing_skills: string[];
+    total_missed_skills: number
+    unrelated_skills: string[];
+    total_unrelated_skills: number;
+    jd_noise: string[];
+    total_jd_noise: number;
+    resume_noise: string[];
+    total_resume_noise: number;
+    radar_data: {}[]
+    summary: string;
 }
 
 export interface FileData {
@@ -28,7 +34,7 @@ export interface FileData {
   filename: string;
   s3_key?: string;
   status: "pending" | "processing" | "completed" | "failed";
-  match_score: number | null;
+  match_score: number;
   details: AnalysisDetails | null;
   candidate_info?: CandidateInfo;
   created_at: string;

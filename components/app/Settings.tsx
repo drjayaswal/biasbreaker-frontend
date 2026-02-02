@@ -43,20 +43,21 @@ export function Settings({ user }: SettingsProps) {
             Settings
           </h1>
 
-          <div className="flex items-center w-full sm:w-auto">
+          <div className="flex items-center w-full sm:w-auto border border-white/30 px-1 py-0.5">
             <button
               onClick={() => router.push("/")}
-              className="flex items-center gap-3 text-white p-3 cursor-pointer duration-200 font-bold transition-all hover:bg-indigo-600"
+              className="flex items-center gap-3 text-white p-3 cursor-pointer duration-200 font-bold transition-all hover:bg-teal-600"
             >
               <Home className="w-5 h-5" />
             </button>
-
+            <div className="h-12 bg-white/30 w-px mx-1"/>
             <button
               onClick={() => router.push("/services")}
               className="flex items-center gap-3 text-white p-3 cursor-pointer duration-200 font-bold transition-all hover:bg-indigo-600"
             >
               <Wrench className="w-5 h-5" />
             </button>
+            <div className="h-12 bg-white/30 w-px mx-1"/>
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 text-white p-3 cursor-pointer duration-200 font-bold transition-all hover:bg-rose-600"

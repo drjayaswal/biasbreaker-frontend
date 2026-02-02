@@ -17,9 +17,9 @@ import {
   Loader,
   RefreshCcw,
   Delete,
-  MoveRight,
   Folder,
   Lock,
+  DownloadCloud,
 } from "lucide-react";
 import Script from "next/script";
 import { FileData } from "@/lib/interface";
@@ -32,6 +32,7 @@ export function Services({ user }: { user: any }) {
   const id = user;
   const ref = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [description, setDescription] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -122,7 +123,7 @@ export function Services({ user }: { user: any }) {
           id: Math.random().toString(),
           filename: f.name,
           status: "processing",
-          match_score: null,
+          match_score: 0,
           details: null,
           created_at: new Date().toISOString(),
         }));
@@ -322,22 +323,22 @@ export function Services({ user }: { user: any }) {
       case "completed":
         return {
           icon: <CheckCircle2 className="w-4 h-4" />,
-          bg: "bg-emerald-500/10 text-emerald-600",
+          bg: "text-emerald-500",
         };
       case "processing":
         return {
           icon: <Loader className="w-4 h-4 animate-spin" />,
-          bg: "bg-main/10 text-main animate-pulse",
+          bg: "text-indigo-500 animate-pulse",
         };
       case "failed":
         return {
           icon: <AlertCircle className="w-4 h-4" />,
-          bg: "bg-rose-500/10 text-rose-600",
+          bg: "text-rose-500",
         };
       default:
         return {
           icon: <Clock className="w-4 h-4" />,
-          bg: "bg-slate-100 text-slate-500",
+          bg: "text-slate-500",
         };
     }
   };
@@ -384,11 +385,68 @@ export function Services({ user }: { user: any }) {
       e.target.value = "";
     }
   };
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-emerald-500";
-    if (score >= 50) return "text-amber-500";
-    return "text-red-500";
+  const renderSkillSection = (
+    title: string,
+    skills: string[],
+    total: number,
+    dotColor: string,
+  ) => (
+    <section>
+      <div className="flex justify-between items-center mb-4">
+        <h4 className="text-[10px] font-black text-white/50 uppercase tracking-widest flex items-center gap-2">
+          <div
+            className={`w-1.5 h-1.5 rounded-full flex gap-4 items-center ${dotColor}`}
+          />
+          {title}
+          <div>{total}</div>
+        </h4>
+        <span className="text-[9px] font-mono text-white/40">
+          {skills.length} displayed
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {skills.map((kw, i) => (
+          <span
+            key={i}
+            className="px-2.5 py-1 bg-white/5 border border-white/10 text-white/70 text-[11px] rounded-md"
+          >
+            {kw}
+          </span>
+        ))}
+        {total > skills.length && (
+          <span className="px-2.5 py-1 text-white/30 text-[11px] font-mono">
+            + {total - skills.length} more
+          </span>
+        )}
+        {total === 0 && (
+          <span className="text-[11px] text-white/20">No skills</span>
+        )}
+      </div>
+    </section>
+  );
+  const downloadReport = async () => {
+    if (reportRef.current === null) return;
+
+    try {
+      const dataUrl = await toPng(reportRef.current, {
+        cacheBust: true,
+        backgroundColor: "#000",
+        style: { borderRadius: "0" },
+      });
+
+      const link = document.createElement("a");
+      if (selectedFileData) {
+        link.download = `Analysis-${selectedFileData.filename}.png`;
+      } else {
+        toast.info("Select to download");
+      }
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Failed to download image", err);
+    }
   };
+
   if (isLoading) return <Loading />;
 
   return (
@@ -490,7 +548,7 @@ export function Services({ user }: { user: any }) {
                   title: "Watch Folder",
                   icon: (
                     <span className="text-[9px] border border-white/20 px-1">
-                      <Lock/>
+                      <Lock />
                     </span>
                   ),
                   handler: () => toast.info("Coming soon..."),
@@ -530,12 +588,12 @@ export function Services({ user }: { user: any }) {
         <div className="lg:col-span-4 flex flex-col h-full bg-black border-l border-white/13 overflow-hidden">
           <div className="px-6 py-[16.1px] flex items-center justify-between bg-black/90 backdrop-blur-md z-20 border-y border-white/13 shrink-0">
             <div className="flex items-baseline gap-3">
-              <h2 className="text-[11px] font-black tracking-[0.3em] uppercase text-white/90">
+              <h2 className="text-[11px] font-black tracking-[0.2em] uppercase text-white/40">
                 Analysis
               </h2>
               <div className="flex items-center gap-1.5">
-                <span className="text-[12px] font-mono text-white/30">
-                  {extractedData.length.toString().padStart(2, "0")}
+                <span className="text-[12px] font-mono text-white/40">
+                  [{extractedData.length.toString().padStart(2, "0")}]
                 </span>
               </div>
             </div>
@@ -552,7 +610,7 @@ export function Services({ user }: { user: any }) {
                   )}
                 />
               </button>
-              <div className="w-px h-4 bg-white/10" />
+              <div className="w-px h-8 bg-white/20 mx-0.5" />
               <button
                 onClick={exportToCSV}
                 title="Export CSV"
@@ -560,7 +618,7 @@ export function Services({ user }: { user: any }) {
               >
                 <Download className="w-3.5 h-3.5 text-white transition-all" />
               </button>
-              <div className="w-px h-4 bg-white/10" />
+              <div className="w-px h-8 bg-white/20 mx-0.5" />
               <button
                 onClick={resetHistory}
                 title="Clear All"
@@ -572,7 +630,7 @@ export function Services({ user }: { user: any }) {
           </div>
           <div className="flex-1 overflow-y-auto custom-scrollbar">
             {extractedData.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center space-y-4 opacity-30">
+              <div className="h-full flex flex-col items-center bg-black/10 justify-center space-y-4 opacity-50">
                 <File className="w-8 h-8" />
                 <p className="text-[10px] uppercase tracking-widest">
                   Awaiting Uploads
@@ -580,7 +638,7 @@ export function Services({ user }: { user: any }) {
               </div>
             ) : (
               <div className="divide-y divide-white/13 mb-20">
-                {extractedData.map((file, idx) => {
+                {extractedData.sort().map((file, idx) => {
                   const config = getStatusConfig(file.status);
                   const isInteractive =
                     file.details &&
@@ -588,51 +646,62 @@ export function Services({ user }: { user: any }) {
 
                   return (
                     <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
                       key={idx}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
                       onClick={() => isInteractive && setSelectedFileData(file)}
                       className={cn(
-                        "p-[10.7px] group transition-all",
+                        "p-[10.7px] group relative overflow-hidden transition-all",
                         isInteractive
-                          ? "cursor-pointer hover:bg-white/2"
+                          ? "cursor-pointer hover:bg-indigo-600/50"
                           : "opacity-60",
                       )}
                     >
-                      {" "}
-                      <div className="flex px-2 items-center justify-between">
+                      <div className="flex px-2 items-center justify-between relative z-10">
                         <div className="flex items-center gap-4 min-w-0">
-                          <File className="w-8 h-6 text-white/50 group-hover:text-white transition-colors" />
-                          <div className="min-w-0">
-                            <h4 className="text-sm font-bold truncate pr-4">
+                          <File className="w-8 h-6 text-white/50 group-hover:text-white transition-colors duration-500" />
+                          <div className="min-w-0 flex items-center">
+                            <h4 className="text-sm text-white/50 group-hover:text-white font-bold transition-colors duration-500 truncate pr-4">
                               {file.filename.split("/").pop()}
                             </h4>
                             <div
                               className={cn(
-                                "text-[9px] font-black uppercase inline-flex items-center gap-1 mt-1 px-1.5 py-0.5",
+                                "text-[8px] flex items-center font-black uppercase gap-1 mt-1 px-1.5 py-0.5",
                                 config.bg,
                               )}
                             >
-                              {config.icon} {file.status}
+                              {config.icon}
                             </div>
                           </div>
                         </div>
+
                         {file.match_score !== null && (
                           <div className="text-right shrink-0">
                             <div
                               className={cn(
                                 "text-xl font-black transition-colors duration-500",
-                                getScoreColor(file.match_score),
+                                file.match_score >= 0.8
+                                  ? "text-emerald-500/50 group-hover:text-emerald-500"
+                                  : file.match_score >= 0.5
+                                    ? "text-amber-500/50 group-hover:text-amber-500"
+                                    : isProcessing
+                                      ? "text-indigo-500/50 group-hover:text-indigo-500"
+                                      : "text-rose-500/50 group-hover:text-rose-500",
                               )}
                             >
-                              {file.match_score}%
+                              {Math.floor(file.match_score)}%
                             </div>
-                            <div className="text-[8px] text-white/30 uppercase tracking-tighter font-bold">
-                              Match Rate
+                            <div className="text-[8px] text-white/30 group-hover:text-white/70 transition-colors duration-500 uppercase tracking-tighter font-bold">
+                              Match
                             </div>
                           </div>
                         )}
                       </div>
+                      <div
+                        className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/15 to-transparent transition-transform duration-700 ease-in-out group-hover:translate-x-full"
+                        style={{ pointerEvents: "none" }}
+                      />
                     </motion.div>
                   );
                 })}
@@ -650,125 +719,115 @@ export function Services({ user }: { user: any }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedFileData(null)}
-              transition={{ duration: 0.1, ease: "easeInOut" }}
               className="fixed inset-0 backdrop-blur-md h-full w-full z-30"
             />
             <div
-              className="fixed inset-0 grid place-items-center z-500"
+              className="fixed inset-0 grid place-items-center z-100 p-4"
               onClick={() => setSelectedFileData(null)}
             >
               <motion.div
                 layoutId={`card-${selectedFileData.id}-${id}`}
-                ref={ref}
-                initial={{ opacity: 0, scale: 0.85, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.85, y: 20 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-4xl h-fit max-h-[90vh] flex flex-col bg-black overflow-hidden shadow-2xl"
+                className="w-full max-w-6xl h-fit max-h-[90vh] bg-black border border-white/20 flex flex-col overflow-hidden"
               >
                 <div className="py-8 px-10 overflow-y-auto no-scrollbar">
-                  <div className="flex justify-between items-start mb-6">
-                    <motion.h2
-                      layoutId={`title-${selectedFileData.id}-${id}`}
-                      className="text-2xl md:text-3xl font-bold text-indigo-500"
-                    >
-                      {selectedFileData.filename.split("/").pop()}
-                    </motion.h2>
-                    <motion.button
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.1, duration: 0.1 }}
-                      onClick={() => setSelectedFileData(null)}
-                      className="p-2 bg-rose-500/50 text-white cursor-pointer rounded-none hover:bg-rose-500 transition-colors"
-                    >
-                      <X className="w-6 h-6" />
-                    </motion.button>
+                  <div className="mb-4 pb-2 border-t border-white/5 flex gap-2 items-center text-[15px] font-mono text-white/50">
+                    <span className="text-white/20 text-sm">Success on</span>
+                    {selectedFileData.filename}
+                    <span className="text-white/20 text-sm">with</span>
+                    <div className="text-xl font-black text-white leading-none">
+                      {selectedFileData.match_score !== null && (
+                        <div className="text-right shrink-0">
+                          <div className={cn("text-white/50")}>
+                            {selectedFileData.match_score === 0 ? (
+                              "0%"
+                            ) : (
+                              <>
+                                {Math.floor(selectedFileData.match_score)}
+                                <span className="text-sm">
+                                  .
+                                  {
+                                    (selectedFileData.match_score % 1)
+                                      .toFixed(2)
+                                      .split(".")[1]
+                                  }
+                                  %
+                                </span>
+                              </>
+                            )}{" "}
+                            <span className="text-white/20 text-sm">Match</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.1, duration: 0.1 }}
-                    className="grid grid-cols-1 lg:grid-cols-2 gap-4"
-                  >
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1, duration: 0.1 }}
-                      className="space-y-6"
-                    >
-                      {selectedFileData.details?.matched_keywords.length &&
-                        selectedFileData.details?.matched_keywords.length >
-                          0 && (
-                          <section>
-                            <h4 className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-4">
-                              Matched Keywords
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {selectedFileData.details?.matched_keywords.map(
-                                (kw, i) => (
-                                  <span
-                                    key={i}
-                                    className="px-3 py-1.5 bg-emerald-500/30 text-white text-xs font-bold rounded-lg"
-                                  >
-                                    {kw}
-                                  </span>
-                                ),
-                              )}
-                            </div>
-                          </section>
-                        )}
-                      {selectedFileData.details?.missing_keywords.length &&
-                        selectedFileData.details?.missing_keywords.length >
-                          0 && (
-                          <section>
-                            <h4 className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-4">
-                              Missing Keywords
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {selectedFileData.details?.missing_keywords.map(
-                                (kw, i) => (
-                                  <span
-                                    key={i}
-                                    className="px-3 py-1.5 bg-rose-500/30 text-white text-xs font-bold rounded-lg"
-                                  >
-                                    {kw}
-                                  </span>
-                                ),
-                              )}
-                            </div>
-                          </section>
-                        )}
-                    </motion.div>
-
-                    <div className="flex flex-col items-center">
-                      <motion.div
-                        ref={chartRef}
-                        className="w-full"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1, duration: 0.1 }}
-                      >
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                    <div className="lg:col-span-7 space-y-10">
+                      {renderSkillSection(
+                        "Critical Missing",
+                        selectedFileData.details?.missing_skills ?? [],
+                        selectedFileData.details?.total_missed_skills ?? 0,
+                        "bg-rose-500",
+                      )}
+                      {renderSkillSection(
+                        "Candidate Strengths",
+                        selectedFileData.details?.matched_skills ?? [],
+                        selectedFileData.details?.total_matched_skills ?? 0,
+                        "bg-emerald-500",
+                      )}
+                      {renderSkillSection(
+                        "Candidate Strengths (Unrelated)",
+                        selectedFileData.details?.unrelated_skills ?? [],
+                        selectedFileData.details?.total_unrelated_skills ?? 0,
+                        "bg-indigo-500",
+                      )}
+                      {/* {renderSkillSection(
+                        "JD Noise",
+                        selectedFileData.details?.jd_noise ?? [],
+                        selectedFileData.details?.total_jd_noise ?? 0,
+                        "bg-teal-500",
+                      )}
+                      {renderSkillSection(
+                        "Resume Noise",
+                        selectedFileData.details?.resume_noise ?? [],
+                        selectedFileData.details?.total_resume_noise ?? 0,
+                        "bg-sky-500",
+                      )} */}
+                    </div>
+                    <div className="lg:col-span-5">
+                      <div ref={reportRef} className="h-64">
                         <AnalysisChart
-                          data={
-                            selectedFileData.details?.radar_data || [1, 2, 3]
-                          }
+                          data={selectedFileData.details?.radar_data ?? []}
                           color="white"
                         />
-                      </motion.div>
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1, duration: 0.1 }}
-                        className="w-full"
+                      </div>
+
+                      <button
+                        onClick={downloadReport}
+                        className="group/btn border-b-4 border-indigo-700 border-x-4 w-full cursor-pointer relative flex items-center justify-between overflow-hidden px-8 py-4 font-bold text-white transition-all duration-500 hover:bg-indigo-700"
                       >
-                        <button className="mt-1 w-full bg-black hover:bg-indigo-700 text-white rounded-none h-12 transition-colors">
-                          Download Analysis
-                        </button>
-                      </motion.div>
+                        <span className="relative z-10 transition-all duration-500 group-hover/btn:tracking-widest mr-4">
+                          Download Chart
+                        </span>
+                        <div className="relative flex items-center overflow-hidden h-6 w-6">
+                          <Download
+                            className={cn(
+                              "transform transition-all duration-500 -translate-y-full opacity-0 absolute",
+                              "group-hover/btn:translate-y-0 group-hover/btn:opacity-100",
+                            )}
+                          />
+                          <DownloadCloud
+                            className={cn(
+                              "transition-all duration-500 opacity-100",
+                              "group-hover/btn:translate-y-full group-hover/btn:opacity-0",
+                            )}
+                          />
+                        </div>
+                        <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 ease-in-out group-hover/btn:translate-x-full" />
+                      </button>
                     </div>
-                  </motion.div>
+                  </div>
                 </div>
               </motion.div>
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Cog, UserCog2, Binary, ShieldCheck, Cpu, Fingerprint, VectorSquare } from "lucide-react";
+import { ArrowRight, Cog, UserCog2, Binary, Cpu, VectorSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AnimatedButton } from "@/components/ui/animated-button";
 import { motion } from "framer-motion";

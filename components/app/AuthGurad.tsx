@@ -9,7 +9,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const publicPaths = ["/connect", "/developers"];
+    const publicPaths = ["/connect", "/developers","/"];
     const isPublicPath = publicPaths.includes(pathname);
     const token = localStorage.getItem("token");
 

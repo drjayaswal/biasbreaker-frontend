@@ -22,15 +22,15 @@ import {
   Cloud,
 } from "lucide-react";
 import Script from "next/script";
-import { FileData } from "@/lib/interface";
+import { FileData, UserData } from "@/lib/interface";
 import { AnalysisChart } from "../ui/radar";
 import { cn, getBaseUrl } from "@/lib/utils";
 import Loading from "../ui/loading";
+import { useRouter } from "next/navigation";
 
-export function Services({ user }: { user: any }) {
+export function Services({ user }: { user: UserData }) {
   const id = user;
-  const ref = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const reportRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [description, setDescription] = useState("");
@@ -84,6 +84,22 @@ export function Services({ user }: { user: any }) {
   const handleSelection = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+    if (files?.length >= 2 || user.credits == 0) {
+      toast.info("Only 1 file is allowed with free tier", {
+        action: {
+          label: "Upgrade",
+          onClick: () => {
+            const toastId = toast.loading("Directing...");
+            setTimeout(() => {
+              toast.dismiss(toastId);
+              router.push("/upgrade");
+            }, 1500);
+          },
+        },
+      });
+      return;
+    }
+
     if (!description) {
       toast.error("Please provide a job description first.");
       return;
@@ -132,6 +148,7 @@ export function Services({ user }: { user: any }) {
         toast.success(`Uploaded ${validFiles.length} files`);
 
         fetchHistory();
+        router.refresh();
       } else {
         toast.error("Upload failed", { id: uploadToastId });
         setIsProcessing(false);
@@ -342,6 +359,22 @@ export function Services({ user }: { user: any }) {
     }
   };
   const getDescription = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (user.credits == 0) {
+      toast.info("Upgrade to use services", {
+        action: {
+          label: "Upgrade",
+          onClick: () => {
+            const toastId = toast.loading("Directing...");
+            setTimeout(() => {
+              toast.dismiss(toastId);
+              router.push("/upgrade");
+            }, 1500);
+          },
+        },
+      });
+      return;
+    }
+    toast.info("");
     const toastId = toast.loading("Extracting description from file...");
 
     const file = e.target.files?.[0];
@@ -397,7 +430,9 @@ export function Services({ user }: { user: any }) {
             className={`w-1.5 h-1.5 rounded-full flex gap-4 items-center ${dotColor}`}
           />
           {title}
-          <div>{skills.length}({total})</div>
+          <div>
+            {skills.length}({total})
+          </div>
         </h4>
       </div>
       <div className="flex flex-wrap gap-1.5">
@@ -506,10 +541,24 @@ export function Services({ user }: { user: any }) {
                   icon: (
                     <Cloud className="w-5 h-5 text-white group-hover:text-white" />
                   ),
-                  handler: () =>
+                  handler: () => {
+                    toast.info("Upgrade to use Google Drive", {
+                      action: {
+                        label: "Upgrade",
+                        onClick: () => {
+                          const toastId = toast.loading("Directing...");
+                          setTimeout(() => {
+                            toast.dismiss(toastId);
+                            router.push("/upgrade");
+                          }, 1500);
+                        },
+                      },
+                    });
+                    return;
                     description.trim()
                       ? login()
-                      : toast.error("Description Required"),
+                      : toast.error("Description Required");
+                  },
                   color: "hover:bg-indigo-700",
                 },
                 {
@@ -541,14 +590,37 @@ export function Services({ user }: { user: any }) {
                       <Lock />
                     </span>
                   ),
-                  handler: () => toast.info("Coming soon..."),
+                  handler: () =>
+                    toast.info("Feature in Development..", {
+                      description: "",
+                      action: {
+                        label: "Notify Me",
+                        onClick: () => {
+                          toast.success("We'll Notify You..!");
+                        },
+                      },
+                    }),
                   disabled: true,
                 },
               ].map((btn, i) => (
                 <button
                   key={i}
-                  onClick={btn.handler}
-                  disabled={btn.disabled}
+                  onClick={() => {
+                    if (user.credits == 0) {
+                      toast.info("Credits Exausted", {
+                        action: {
+                          label: "Upgrade",
+                          onClick: () => {
+                            const toastId = toast.loading("Directing...");
+                            setTimeout(() => {
+                              toast.dismiss(toastId);
+                              router.push("/upgrade");
+                            }, 1500);
+                          },
+                        },
+                      });
+                    } else btn.handler();
+                  }}
                   className={cn(
                     "group/btn relative flex items-center justify-between overflow-hidden px-8 py-4 font-bold text-white transition-all duration-500",
                     btn.disabled

@@ -14,6 +14,19 @@ export interface CandidateInfo {
   contact: CandidateContact;
 }
 
+export interface UserData {
+  email: string;
+  id: string;
+  updated_at: string;
+  authenticated?: boolean;
+  credits: number | 0;
+}
+
+export interface SettingsProps {
+  user: UserData | null;
+}
+
+
 export interface AnalysisDetails {
     matched_skills: string[];
     total_matched_skills: number

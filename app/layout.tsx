@@ -32,7 +32,6 @@ export default function RootLayout({
       >
         <Toaster
           position="bottom-right"
-          closeButton
           theme="dark"
           toastOptions={{
             className:

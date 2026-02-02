@@ -49,7 +49,7 @@ export default function HeroSection() {
           >
             <AnimatedButton
               label="Services"
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/services")}
               Icon={Cog}
               rotateIcon 
             />

@@ -3,17 +3,8 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { User, Power, Home, Wrench, Clock } from "lucide-react";
+import { SettingsProps } from "@/lib/interface";
 
-interface UserData {
-  email: string;
-  id: string;
-  updated_at: string;
-  authenticated?: boolean;
-}
-
-interface SettingsProps {
-  user: UserData | null;
-}
 
 export function Settings({ user }: SettingsProps) {
   const router = useRouter();

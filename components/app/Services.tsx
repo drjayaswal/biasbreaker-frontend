@@ -20,6 +20,8 @@ import {
   Lock,
   DownloadCloud,
   Cloud,
+  BadgeIndianRupee,
+  ArrowUpSquare,
 } from "lucide-react";
 import Script from "next/script";
 import { FileData, UserData } from "@/lib/interface";
@@ -145,10 +147,10 @@ export function Services({ user }: { user: UserData }) {
 
         setExtractedData((prev) => [...localPlaceholders, ...prev]);
         toast.dismiss(uploadToastId);
-        toast.success(`Uploaded ${validFiles.length} files`);
-
+        const data = await response.json()
+        toast.success(data.message);
+        
         fetchHistory();
-        router.refresh();
       } else {
         toast.error("Upload failed", { id: uploadToastId });
         setIsProcessing(false);
@@ -158,6 +160,7 @@ export function Services({ user }: { user: UserData }) {
       setIsProcessing(false);
     } finally {
       setIsLoading(false);
+      router.push("/services");
     }
   };
   const exportToCSV = () => {
@@ -374,7 +377,6 @@ export function Services({ user }: { user: UserData }) {
       });
       return;
     }
-    toast.info("");
     const toastId = toast.loading("Extracting description from file...");
 
     const file = e.target.files?.[0];
@@ -531,9 +533,17 @@ export function Services({ user }: { user: UserData }) {
             </div>
           </div>
           <div className="space-y-4">
-            <h3 className="text-[12px] font-black text-white/40 uppercase tracking-[0.2em] px-1">
-              Source Selection
-            </h3>
+            <div className="flex gap-2 items-center">
+              <h3 className="text-[12px] font-black text-white/40 uppercase tracking-[0.2em] px-1">
+                Source Selection
+              </h3>
+              <div className="flex items-center gap-2 px-3 py-1.5">
+                <BadgeIndianRupee className="w-4 h-4 text-white" />
+                <span className="text-[11px] font-medium text-white tracking-widest">
+                  1/file
+                </span>
+              </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 bg-black border-dashed border p-3.5 border-white/20">
               {[
                 {
@@ -659,6 +669,34 @@ export function Services({ user }: { user: UserData }) {
                 </span>
               </div>
             </div>
+            <div className="flex items-center border border-white/13 divide-x divide-white/15 p-0.5">
+              <div className="flex items-center gap-2 px-3 py-1.5">
+                <BadgeIndianRupee className="w-4 h-4 text-white" />
+                <span className="text-[11px] font-medium text-white">
+                  {user.credits}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  toast.info("Get more credits?", {
+                    action: {
+                      label: "Upgrade",
+                      onClick: () => {
+                        const toastId = toast.loading("Directing...");
+                        setTimeout(() => {
+                          toast.dismiss(toastId);
+                          router.push("/upgrade");
+                        }, 1500);
+                      },
+                    },
+                  });
+                }}
+                className="group px-10 cursor-pointer flex items-center justify-center h-8 w-9 transition-all hover:bg-pink-500"
+              >
+                <span className="text-[12px]">Upgrade</span>
+              </button>
+            </div>
+
             <div className="flex items-center border border-white/13 p-0.5">
               <button
                 onClick={fetchHistory}

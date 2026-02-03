@@ -347,7 +347,7 @@ export function Services({ user }: { user: UserData }) {
       case "processing":
         return {
           icon: <Loader className="w-4 h-4 animate-spin" />,
-          bg: "text-indigo-500 animate-pulse",
+          bg: "text-indigo-500",
         };
       case "failed":
         return {
@@ -691,7 +691,7 @@ export function Services({ user }: { user: UserData }) {
                     },
                   });
                 }}
-                className="group px-10 cursor-pointer flex items-center justify-center h-8 w-9 transition-all hover:bg-pink-500"
+                className="group px-10 ml-0.5 cursor-pointer flex items-center justify-center h-8 w-9 transition-all hover:bg-pink-500"
               >
                 <span className="text-[12px]">Upgrade</span>
               </button>
@@ -769,7 +769,7 @@ export function Services({ user }: { user: UserData }) {
                           </div>
                         </div>
 
-                        {file.match_score !== null && (
+                        {isProcessing || file.match_score !== null && (
                           <div className="text-right shrink-0">
                             <div
                               className={cn(
